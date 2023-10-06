@@ -271,7 +271,7 @@
 		</dependency>
 	</dependencies>
 	<properties>
-		<lib-restlet-version>2.4.3</lib-restlet-version>
+		<lib-restlet-version>2.3.2</lib-restlet-version>
 		<lib-jackson-version>2.11.0</lib-jackson-version>
 		<lib-hamcrest-version>2.2</lib-hamcrest-version>
 	</properties>
