@@ -17,3 +17,5 @@ findbugs-results
 .metadata/
 /bin/
 .m2
+
+**/repository/*
