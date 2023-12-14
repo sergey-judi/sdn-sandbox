@@ -860,7 +860,7 @@ implements IOFSwitchListener, IFloodlightModule, IStaticEntryPusherService, ISto
 	public void addFlow(String name, OFFlowMod fm, DatapathId swDpid) {
 		try {
 			Map<String, Object> fmMap = StaticEntries.flowModToStorageEntry(fm, swDpid.toString(), name);
-			storageSourceService.insertRowAsync(TABLE_NAME, fmMap);
+			storageSourceService.insertRow(TABLE_NAME, fmMap);
 		} catch (Exception e) {
 			log.error("Did not add flow with bad match/action combination. {}", fm);
 		}

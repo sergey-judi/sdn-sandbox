@@ -68,7 +68,7 @@ public class StaticEntryUsageResource extends ServerResource {
 		Set<String> value = new HashSet<String>();
 		Set<String> notes = new HashSet<String>();
 		Map<String, String> prereqs = null;
-		Set<OFVersion> ofVersions = null;
+		Set<OFVersion> ofVersions = new HashSet<>();
 		
 		//TODO hashcode, equals, toString
 	}
