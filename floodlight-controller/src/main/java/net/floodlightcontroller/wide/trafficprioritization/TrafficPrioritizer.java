@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,7 @@ import org.projectfloodlight.openflow.protocol.instruction.OFInstructionMeter;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBand;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDrop;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDscpRemark.Builder;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.EthType;
@@ -98,6 +100,11 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 	 * @param srcAddr	The IPv4 Address of the QoS traffic source
 	 * @param dstAddr	The IPv4 Address of the QoS traffic destination
 	 */
+	Map<IPv4Address, IpDscp> map = new HashMap<IPv4Address, IpDscp>() {{
+		put(IPv4Address.of("10.0.0.1"), IpDscp.DSCP_2);
+		put(IPv4Address.of("10.0.0.2"), IpDscp.DSCP_4);
+	}};
+
 	private void installSetTosFlow(final IOFSwitch sw, IPv4Address srcAddr, IPv4Address dstAddr) {
 		log.info("Installing flow that sets the default ToS for the registered QoS traffic flow on switch "+ sw.getId());
 		
@@ -109,7 +116,7 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 		// Setting the Type of Service value
 		OFActionSetField dscp = factory.actions().buildSetField()
 				.setField(factory.oxms().buildIpDscp()
-						.setValue(IpDscp.DSCP_2)		// Corresponding to ToS 0x08
+						.setValue(map.get(srcAddr))		// Corresponding to ToS 0x08
 						.build())
 				.build();	
 		actions.add(dscp);
@@ -161,7 +168,7 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 		// Setting the Type of Service value
 		OFActionSetField dscp = factory.actions().buildSetField()
 				.setField(factory.oxms().buildIpDscp()
-						.setValue(IpDscp.DSCP_2)		// Corresponding to ToS 0x08
+						.setValue(map.get(srcAddr))		// Corresponding to ToS 0x08
 						.build())
 				.build();	
 		actions.add(dscp);
@@ -207,15 +214,34 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 		log.info("Creating DSCP remark meter " + meterId + " with guaranteed bandwidth " + rate + " on switch " + sw.getId());
 		
 		OFFactory factory = sw.getOFFactory();
+
+			// Specify meter flags
+		Set<OFMeterFlags> flags = new HashSet<>(Arrays.asList(OFMeterFlags.KBPS, OFMeterFlags.BURST));
+
+		// Create and set meter band
+		OFMeterBandDrop.Builder bandBuilder = factory.meterBands().buildDrop()
+				.setRate(rate)
+				.setBurstSize(new Random().nextInt(2000));
+//		Builder bandBuilder = (Builder) builder;
         
 		// Specify meter flags
-		Set<OFMeterFlags> flags = new HashSet<>(Arrays.asList(OFMeterFlags.KBPS));//, OFMeterFlags.BURST));
-        
-        // Create and set meter band
-        Builder bandBuilder = factory.meterBands().buildDscpRemark()
-                .setRate(rate)
-                .setPrecLevel((short) 1);	// Needed in order to match the ToS for the Remark
-                //.setBurstSize(burstSize);
+//		Set<OFMeterFlags> flags = new HashSet<>(Arrays.asList(OFMeterFlags.KBPS));//, OFMeterFlags.BURST));
+//
+//        // Create and set meter band
+//        Builder bandBuilder = factory.meterBands().buildDscpRemark()
+//                .setRate(rate)
+//                .setPrecLevel((short) 1);	// Needed in order to match the ToS for the Remark
+//                //.setBurstSize(burstSize);
+
+
+		// Specify meter flags
+//		Set<OFMeterFlags> flags = new HashSet<>(Arrays.asList(OFMeterFlags.KBPS));//, OFMeterFlags.BURST));
+//
+//        // Create and set meter band
+//        Builder bandBuilder = factory.meterBands().buildDscpRemark()
+//                .setRate(rate)
+//                .setPrecLevel((short) 1);	// Needed in order to match the ToS for the Remark
+//                //.setBurstSize(burstSize);
 
         // Create meter modification message
         OFMeterMod.Builder meterModBuilder = factory.buildMeterMod()
@@ -235,8 +261,6 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 	 * 
 	 * @param sw 			the switch in which the meter will be removed
 	 * @param meterId		the ID of the meter
-	 * @param rate			the maximum guaranteed bandwidth
-	 * @param burstSize		burst
 	 */
 	
 	private void removeMeter(final IOFSwitch sw, final long meterId) {
