@@ -12,6 +12,10 @@ import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.packet.BasePacket;
 import net.floodlightcontroller.staticentry.IStaticEntryPusherService;
 import net.floodlightcontroller.wide.service.PacketInService;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.projectfloodlight.openflow.protocol.OFFactories;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFMessage;
@@ -20,11 +24,14 @@ import org.projectfloodlight.openflow.protocol.OFType;
 import org.projectfloodlight.openflow.protocol.OFVersion;
 import org.projectfloodlight.openflow.protocol.match.Match;
 import org.projectfloodlight.openflow.protocol.match.MatchField;
+import sun.misc.IOUtils;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
 
@@ -90,6 +97,7 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
     Match match = packetIn.getMatch();
 
     packetInService.log(message);
+
     System.out.println(MatchField.IN_PORT.arePrerequisitesOK(match));
     System.out.println(MatchField.IPV4_SRC.arePrerequisitesOK(match));
 
@@ -111,7 +119,22 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
 
     packetInService.handlePacketIn(ofSwitch, packetIn, context);
 
+    CompletableFuture.runAsync(this::testHttp);
+
     return Command.CONTINUE;
+  }
+
+  private void testHttp() {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
+
+    try (CloseableHttpResponse httpResponse = httpClient.execute(new HttpGet("https://official-joke-api.appspot.com/random_joke"))) {
+      try (InputStream responseBody = httpResponse.getEntity().getContent()) {
+        String content = new String(IOUtils.readAllBytes(responseBody));
+        System.out.println("Response Content: " + content);
+      }
+    } catch (Exception ex) {
+      packetInService.log("Exception occurred: " + ex.getMessage());
+    }
   }
 
 }
