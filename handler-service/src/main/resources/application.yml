@@ -1,0 +1,11 @@
+server:
+  port: 8181
+
+spring:
+  main:
+    banner-mode: off
+
+floodlight:
+  topology-uri: http://localhost:8080/qos/switches/topology
+  switches-uri: http://localhost:8080/qos/switches/json
+  flows-uri: http://localhost:8080/qos/switches/json
