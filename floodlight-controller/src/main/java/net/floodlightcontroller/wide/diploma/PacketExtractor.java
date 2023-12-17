@@ -127,7 +127,7 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
   private void testHttp() {
     CloseableHttpClient httpClient = HttpClients.createDefault();
 
-    try (CloseableHttpResponse httpResponse = httpClient.execute(new HttpGet("https://official-joke-api.appspot.com/random_joke"))) {
+    try (CloseableHttpResponse httpResponse = httpClient.execute(new HttpGet("http://localhost:8181/v1/api/packets"))) {
       try (InputStream responseBody = httpResponse.getEntity().getContent()) {
         String content = new String(IOUtils.readAllBytes(responseBody));
         System.out.println("Response Content: " + content);
