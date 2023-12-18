@@ -15,6 +15,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import net.floodlightcontroller.util.Pair;
+import net.floodlightcontroller.wide.service.PacketInService;
+import net.floodlightcontroller.wide.service.data.PacketData;
 import org.projectfloodlight.openflow.protocol.OFFactory;
 import org.projectfloodlight.openflow.protocol.OFFlowAdd;
 import org.projectfloodlight.openflow.protocol.OFFlowDelete;
@@ -789,4 +791,10 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
         
 		return classStats;
 	}
+
+	@Override
+	public List<PacketData> getPacketData() {
+		return PacketInService.packets;
+	}
+
 }

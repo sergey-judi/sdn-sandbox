@@ -3,6 +3,8 @@ package net.floodlightcontroller.wide.trafficprioritization.web;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+
+import net.floodlightcontroller.wide.service.data.PacketData;
 import org.projectfloodlight.openflow.types.DatapathId;
 
 import net.floodlightcontroller.core.module.IFloodlightService;
@@ -70,5 +72,6 @@ public interface ITrafficPrioritizerREST extends IFloodlightService {
 	 * @return			the number of packets handled by each class
 	 */
 	public Map<String, BigInteger> getNumPacketsHandledPerTrafficClass(DatapathId dpid);
-	
+
+	public List<PacketData> getPacketData();
 }

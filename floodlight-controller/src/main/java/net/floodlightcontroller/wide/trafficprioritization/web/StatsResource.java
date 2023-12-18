@@ -3,10 +3,13 @@ package net.floodlightcontroller.wide.trafficprioritization.web;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import net.floodlightcontroller.wide.service.data.PacketData;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.restlet.data.Status;
+import org.restlet.resource.Get;
 import org.restlet.resource.Post;
 import org.restlet.resource.ServerResource;
 
@@ -17,6 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Class that manages the resource "/stats/json"
  */
 public class StatsResource extends ServerResource{
+
+	@Get("json")
+	public List<PacketData> getPacketData() {
+		ITrafficPrioritizerREST tp = (ITrafficPrioritizerREST) getContext().getAttributes()
+				.get(ITrafficPrioritizerREST.class.getCanonicalName());
+		return tp.getPacketData();
+	}
+
 	/**
 	 * Retrieves the QoS class statistics
 	 * @return  the number of packets handled by each class

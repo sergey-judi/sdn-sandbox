@@ -66,7 +66,7 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
     floodlightProvider = context.getServiceImpl(IFloodlightProviderService.class);
     staticEntryPusherService = context.getServiceImpl(IStaticEntryPusherService.class);
     switchService = context.getServiceImpl(IOFSwitchService.class);
-    packetInService = new PacketInService(ofFactory, staticEntryPusherService);
+    packetInService = new PacketInService();
   }
 
   @Override
