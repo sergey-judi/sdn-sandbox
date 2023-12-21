@@ -1,6 +1,7 @@
 package net.floodlightcontroller.wide.service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import net.floodlightcontroller.core.IOFSwitch;
@@ -20,6 +21,7 @@ import org.projectfloodlight.openflow.types.IpProtocol;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Getter
 public class PacketInService {
 
@@ -28,31 +30,31 @@ public class PacketInService {
   public void handlePacketIn(IOFSwitch iofSwitch, OFPacketIn message, FloodlightContext context) {
     Match match = message.getMatch();
 
-    log("In Port: %s", match.get(MatchField.IN_PORT));
+    log.info("In Port: {}", match.get(MatchField.IN_PORT));
 
     Ethernet ethernet = IFloodlightProviderService.bcStore.get(context, IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
     EthType etherType = ethernet.getEtherType();
 
-    log("Payload type: " + ethernet.getPayload().getClass().getSimpleName());
+    log.info("Payload type: {}", ethernet.getPayload().getClass().getSimpleName());
 
     if (etherType == EthType.IPv4) {
       IPv4 ipv4 = (IPv4) ethernet.getPayload();
       IpProtocol protocol = ipv4.getProtocol();
 
       if (protocol == IpProtocol.ICMP) {
-        log("ICMP: %s", ipv4.getPayload());
+        log.info("ICMP: {}", ipv4.getPayload());
 
         handleIcmpPacket(ipv4);
       } else if (protocol == IpProtocol.TCP) {
-        log("TCP: %s", ipv4.getPayload());
+        log.info("TCP: {}", ipv4.getPayload());
 
         handleTcpPacket(ipv4);
       } else if (protocol == IpProtocol.UDP) {
-        log("UDP: %s", ipv4.getPayload());
+        log.info("UDP: {}", ipv4.getPayload());
 
         handleUdpPacket(ipv4);
       } else {
-        log("Unknown protocol: %s", protocol);
+        log.info("Unknown protocol: {}", protocol);
       }
 
     } else if (etherType == EthType.ARP) {
@@ -60,13 +62,15 @@ public class PacketInService {
 
       handleArpPacket(arp);
     } else {
-      log("Unknown ethernet type: %s", etherType);
+      log.info("Unknown ethernet type: {}", etherType);
     }
 
-    savePacketData(iofSwitch, message, ethernet);
+    savePacketData(iofSwitch, message, context);
   }
 
-  public void savePacketData(IOFSwitch iofSwitch, OFPacketIn message, Ethernet ethernet) {
+  public PacketData extractPacketData(IOFSwitch iofSwitch, OFPacketIn message, FloodlightContext context) {
+    Ethernet ethernet = IFloodlightProviderService.bcStore.get(context, IFloodlightProviderService.CONTEXT_PI_PAYLOAD);
+
     EthType etherType = ethernet.getEtherType();
     PacketData packetData = new PacketData()
         .setSwitchId(iofSwitch.getId().toString())
@@ -120,7 +124,7 @@ public class PacketInService {
             .setBufferId(message.getBufferId().toString())
             .setChecksum(packet.getChecksum());
       } else {
-        log("Unknown protocol: %s", protocol);
+        log.info("Unknown protocol: {}", protocol);
       }
 
     } else if (etherType == EthType.ARP) {
@@ -138,15 +142,21 @@ public class PacketInService {
           .setBufferId(message.getBufferId().toString())
           .setChecksum(null);
     } else {
-      log("Unknown ethernet type: %s", etherType);
+      log.info("Unknown ethernet type: {}", etherType);
     }
+
+    return packetData;
+  }
+
+  private void savePacketData(IOFSwitch iofSwitch, OFPacketIn message, FloodlightContext context) {
+    PacketData packetData = extractPacketData(iofSwitch, message, context);
 
     packets.add(packetData);
   }
 
-  public void handleIcmpPacket(IPv4 ipv4) {
-    log(
-        "Protocol: %s, Source: %s, Destination: %s, Payload: %s, Code: %s, Type: %s, Total length: %s",
+  private void handleIcmpPacket(IPv4 ipv4) {
+    log.info(
+        "Protocol: {}, Source: {}, Destination: {}, Payload: {}, Code: {}, Type: {}, Total length: {}",
         ipv4.getProtocol(),
         ipv4.getSourceAddress(),
         ipv4.getDestinationAddress(),
@@ -157,9 +167,9 @@ public class PacketInService {
     );
   }
 
-  public void handleTcpPacket(IPv4 ipv4) {
-    log(
-        "Protocol: %s, Source: %s, Destination: %s, Payload: %s, Source port: %s, Destination port: %s, Total length: %s",
+  private void handleTcpPacket(IPv4 ipv4) {
+    log.info(
+        "Protocol: {}, Source: {}, Destination: {}, Payload: {}, Source port: {}, Destination port: {}, Total length: {}",
         ipv4.getProtocol(),
         ipv4.getSourceAddress(),
         ipv4.getDestinationAddress(),
@@ -170,9 +180,9 @@ public class PacketInService {
     );
   }
 
-  public void handleUdpPacket(IPv4 ipv4) {
-    log(
-        "Protocol: %s, Source: %s, Destination: %s, Payload: %s, Source port: %s, Destination port: %s, Total length: %s",
+  private void handleUdpPacket(IPv4 ipv4) {
+    log.info(
+        "Protocol: {}, Source: {}, Destination: {}, Payload: {}, Source port: {}, Destination port: {}, Total length: {}",
         ipv4.getProtocol(),
         ipv4.getSourceAddress(),
         ipv4.getDestinationAddress(),
@@ -183,29 +193,15 @@ public class PacketInService {
     );
   }
 
-  public void handleArpPacket(ARP arp) {
-    log(
-        "Protocol: %s, Source: %s, Destination: %s, Payload: %s, Op code: %s",
+  private void handleArpPacket(ARP arp) {
+    log.info(
+        "Protocol: {}, Source: {}, Destination: {}, Payload: {}, Op code: {}",
         arp.getProtocolType(),
         arp.getSenderProtocolAddress(),
         arp.getTargetProtocolAddress(),
         arp.getPayload(),
         arp.getOpCode()
     );
-  }
-
-  public void log(String template, Object... params) {
-    log(
-        String.format(template, params)
-    );
-  }
-
-  public void log(Object obj) {
-    log("" + obj);
-  }
-
-  public void log(String message) {
-    System.out.println(message);
   }
 
 //  public void createMatch(IOFSwitch iofSwitch) {

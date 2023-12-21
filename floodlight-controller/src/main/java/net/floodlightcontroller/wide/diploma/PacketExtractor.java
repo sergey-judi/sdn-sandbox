@@ -1,5 +1,6 @@
 package net.floodlightcontroller.wide.diploma;
 
+import lombok.extern.slf4j.Slf4j;
 import net.floodlightcontroller.core.FloodlightContext;
 import net.floodlightcontroller.core.IFloodlightProviderService;
 import net.floodlightcontroller.core.IOFMessageListener;
@@ -12,6 +13,7 @@ import net.floodlightcontroller.core.module.IFloodlightService;
 import net.floodlightcontroller.packet.BasePacket;
 import net.floodlightcontroller.staticentry.IStaticEntryPusherService;
 import net.floodlightcontroller.wide.service.PacketInService;
+import net.floodlightcontroller.wide.service.client.PacketHandlerClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -33,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
 
   private final OFFactory ofFactory = OFFactories.getFactory(OFVersion.OF_13);
@@ -96,7 +99,7 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
     OFPacketIn packetIn = (OFPacketIn) message;
     Match match = packetIn.getMatch();
 
-    packetInService.log(message);
+    log.info("{}", message);
 
     System.out.println(MatchField.IN_PORT.arePrerequisitesOK(match));
     System.out.println(MatchField.IPV4_SRC.arePrerequisitesOK(match));
@@ -114,27 +117,18 @@ public class PacketExtractor implements IFloodlightModule, IOFMessageListener {
     System.out.println("---");
     System.out.println("=======\n");
 
-    packetInService.log("%s", packet);
-    packetInService.log("%s", packetIn);
+    log.info("{}", packet);
+    log.info("{}", packetIn);
 
     packetInService.handlePacketIn(ofSwitch, packetIn, context);
 
-    CompletableFuture.runAsync(this::testHttp);
+    CompletableFuture.runAsync(
+        () -> PacketHandlerClient.process(
+            packetInService.extractPacketData(ofSwitch, packetIn, context)
+        )
+    );
 
     return Command.CONTINUE;
-  }
-
-  private void testHttp() {
-    CloseableHttpClient httpClient = HttpClients.createDefault();
-
-    try (CloseableHttpResponse httpResponse = httpClient.execute(new HttpGet("http://localhost:8181/v1/api/packets"))) {
-      try (InputStream responseBody = httpResponse.getEntity().getContent()) {
-        String content = new String(IOUtils.readAllBytes(responseBody));
-        System.out.println("Response Content: " + content);
-      }
-    } catch (Exception ex) {
-      packetInService.log("Exception occurred: " + ex.getMessage());
-    }
   }
 
 }
