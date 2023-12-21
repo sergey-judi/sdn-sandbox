@@ -1,6 +1,8 @@
 package kpi.iasa.service.client;
 
 import kpi.iasa.cloud.FloodlightProperties;
+import kpi.iasa.service.model.request.FlowRequest;
+import kpi.iasa.service.model.request.SwitchConfigRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,14 @@ public class FloodlightClient {
         .accept(MediaType.APPLICATION_JSON)
         .retrieve()
         .body(String.class);
+  }
+
+  public void linkSwitches(SwitchConfigRequest request) {
+
+  }
+
+  public void registerFlow(FlowRequest request) {
+
   }
 
 }

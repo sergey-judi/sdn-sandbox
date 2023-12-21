@@ -4,8 +4,14 @@ server:
 spring:
   main:
     banner-mode: off
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
 
 floodlight:
+  meter-switch: 00:00:00:00:00:00:00:06
+  queue-switch: 00:00:00:00:00:00:00:07
   topology-uri: http://localhost:8080/qos/switches/topology
   switches-uri: http://localhost:8080/qos/switches/json
   flows-uri: http://localhost:8080/qos/switches/json
