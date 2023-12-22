@@ -2,6 +2,7 @@ package kpi.iasa.service.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
 public class FlowRequest {
@@ -18,6 +19,7 @@ public class FlowRequest {
   @JsonProperty("dst-addr")
   String destinationIp;
 
+  @EqualsAndHashCode.Exclude
   Integer bandwidth;
 
 }

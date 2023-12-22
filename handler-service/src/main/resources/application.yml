@@ -10,8 +10,12 @@ spring:
       fail-on-unknown-properties: false
 
 floodlight:
-  meter-switch: 00:00:00:00:00:00:00:06
-  queue-switch: 00:00:00:00:00:00:00:07
+  prioritization:
+    meter-switch: 00:00:00:00:00:00:00:06
+    queue-switch: 00:00:00:00:00:00:00:07
+    flows:
+      "10.0.0.1": "10.0.0.5"
+      "10.0.0.2": "10.0.0.5"
   topology-uri: http://localhost:8080/qos/switches/topology
   switches-uri: http://localhost:8080/qos/switches/json
-  flows-uri: http://localhost:8080/qos/switches/json
+  flows-uri: http://localhost:8080/qos/flows/json
