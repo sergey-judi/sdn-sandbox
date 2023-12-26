@@ -11,6 +11,7 @@ spring:
 
 floodlight:
   prioritization:
+    enabled: false
     meter-switch: 00:00:00:00:00:00:00:06
     queue-switch: 00:00:00:00:00:00:00:07
     flows:

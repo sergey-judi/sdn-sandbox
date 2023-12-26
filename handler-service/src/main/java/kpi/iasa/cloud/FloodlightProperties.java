@@ -16,7 +16,12 @@ public record FloodlightProperties(
     @Valid @NotNull PrioritizationProperties prioritization
 ) {
 
+  public boolean isPrioritizationDisabled() {
+    return !prioritization.enabled;
+  }
+
   public record PrioritizationProperties(
+      @NotNull Boolean enabled,
       @NotBlank String meterSwitch,
       @NotBlank String queueSwitch,
       @NotNull Map<String, String> flows

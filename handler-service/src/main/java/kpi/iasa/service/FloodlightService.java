@@ -24,6 +24,10 @@ public class FloodlightService {
   }
 
   public void configure(PacketConfigurationRequest request) {
+    if (floodlightProperties.isPrioritizationDisabled()) {
+      return;
+    }
+
     String meterSwitch = floodlightProperties.prioritization().meterSwitch();
     String queueSwitch = floodlightProperties.prioritization().queueSwitch();
 
