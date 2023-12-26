@@ -9,11 +9,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import lombok.val;
 import net.floodlightcontroller.util.Pair;
 import net.floodlightcontroller.wide.service.PacketInService;
 import net.floodlightcontroller.wide.service.data.PacketData;
@@ -42,6 +42,7 @@ import org.projectfloodlight.openflow.protocol.match.MatchField;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBand;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDrop;
 import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandDscpRemark.Builder;
+import org.projectfloodlight.openflow.protocol.meterband.OFMeterBandExperimenter;
 import org.projectfloodlight.openflow.types.DatapathId;
 import org.projectfloodlight.openflow.types.EthType;
 import org.projectfloodlight.openflow.types.IPv4Address;
@@ -221,9 +222,10 @@ public class TrafficPrioritizer implements IFloodlightModule, IOFMessageListener
 		Set<OFMeterFlags> flags = new HashSet<>(Arrays.asList(OFMeterFlags.KBPS, OFMeterFlags.BURST));
 
 		// Create and set meter band
-		OFMeterBandDrop.Builder bandBuilder = factory.meterBands().buildDrop()
+		val bandBuilder = factory.meterBands().buildDrop()
 				.setRate(rate)
-				.setBurstSize(new Random().nextInt(2000));
+				.setBurstSize(3000);
+
 //		Builder bandBuilder = (Builder) builder;
         
 		// Specify meter flags
